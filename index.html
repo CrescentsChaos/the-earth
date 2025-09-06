@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animal Encyclopedia</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>🐾 Animal Encyclopedia</header>
+<input type="text" id="searchBox" placeholder="Search animals by name...">
+
+<div class="container" id="animalContainer"></div>
+
+<script>
+    let animals = [];
+
+    // Load JSON file
+    fetch('Creatures.json')
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to load JSON file");
+            return response.json();
+        })
+        .then(data => {
+            // Capitalize names and sort
+            animals = data.Animals.map(animal => ({
+                ...animal,
+                Name: capitalizeWords(animal.Name.trim())
+            })).sort((a, b) => a.Name.localeCompare(b.Name));
+
+            displayAnimals(animals);
+        })
+        .catch(error => {
+            console.error(error);
+            document.getElementById('animalContainer').innerHTML =
+                `<p style="color:red;text-align:center;">Error loading data. Make sure you're running a local server.</p>`;
+        });
+
+    // Capitalize each word
+    function capitalizeWords(str) {
+        return str.replace(/\w\S*/g, word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+    }
+
+    // Display animals
+    function displayAnimals(list) {
+        const container = document.getElementById('animalContainer');
+        container.innerHTML = '';
+        list.forEach(animal => {
+            const card = document.createElement('div');
+            card.classList.add('card');
+
+            card.innerHTML = `
+                <div class="image-wrapper">
+                    <img src="${animal['Image Link'] || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${animal.Name}">
+                </div>
+                <div class="card-content">
+                    <div class="animal-name">${animal.Name}</div>
+                    <div class="scientific-name">${animal['Scientific Name']}</div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // Search functionality
+    document.getElementById('searchBox').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const filtered = animals.filter(animal =>
+            animal.Name.toLowerCase().includes(searchTerm) ||
+            animal['Scientific Name'].toLowerCase().includes(searchTerm)
+        );
+        displayAnimals(filtered);
+    });
+</script>
+
+</body>
+</html>
